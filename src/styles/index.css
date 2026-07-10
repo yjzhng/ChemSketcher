@@ -1,0 +1,451 @@
+/* ChemSketcher is light-only: the Ketcher canvas can't be reliably dark-themed
+   (epam/ketcher#5353 is unshipped), so a single consistent light palette beats
+   a half-dark UI. */
+:root {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --panel-2: #eceff3;
+  --border: #d7dce3;
+  --text: #1b1e24;
+  --muted: #667085;
+  --accent: #1d5fd0;
+  --accent-dim: #2b6fd0;
+  --danger: #d1362f;
+  --ok: #2ea043;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---- Header ---------------------------------------------------------------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.app-header h1 {
+  font-size: 16px;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+.tagline {
+  color: var(--muted);
+  font-size: 13px;
+}
+.spacer {
+  flex: 1;
+}
+.file-msg {
+  white-space: nowrap;
+}
+/* Top-left file menu (Open / Save / Save As). */
+.file-menu {
+  display: flex;
+  gap: 2px;
+}
+.file-btn {
+  padding: 4px 10px;
+  font-size: 13px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+}
+.file-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--border);
+}
+.header-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  border-radius: 8px;
+  color: var(--text);
+}
+.header-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--accent);
+}
+.settings-btn {
+  font-size: 20px;
+}
+
+/* ---- Split layout ---------------------------------------------------------- */
+.split {
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(480px, 1.2fr);
+  flex: 1;
+  min-height: 0;
+}
+/* Right (properties) panel hidden — sketcher takes the full width. */
+.split.solo {
+  grid-template-columns: 1fr;
+}
+.split.solo .sketch-panel {
+  border-right: none;
+}
+
+.sketch-panel,
+.table-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.sketch-panel {
+  border-right: 1px solid var(--border);
+}
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.panel-bar h2 {
+  font-size: 13px;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.status {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+/* ---- Buttons --------------------------------------------------------------- */
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 6px 12px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button.primary {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: #fff;
+}
+button.primary:not(:disabled):hover {
+  background: var(--accent);
+}
+button.ghost {
+  background: transparent;
+}
+.icon-btn {
+  padding: 2px 8px;
+  color: var(--muted);
+  border-color: transparent;
+  background: transparent;
+}
+.icon-btn:hover {
+  color: var(--danger);
+}
+
+/* ---- SMILES input bar (SMILES → structure) --------------------------------- */
+.smiles-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.smiles-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.smiles-input {
+  flex: 0 1 260px;
+  min-width: 100px;
+  font: inherit;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+.smiles-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.smiles-load {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.bar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: var(--border);
+}
+
+/* ---- Copyable cells (structure → SMILES, InChIKey) ------------------------- */
+.copy {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+}
+.copy:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.smiles-cell {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* ---- Fast custom tooltip (replaces the slow native `title`) ---------------- */
+.tip-wrap {
+  display: inline-flex;
+}
+.tip {
+  position: fixed;
+  z-index: 300;
+  max-width: 320px;
+  background: #22262f;
+  color: #f2f4f7;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 5px 9px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* ---- Settings modal -------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: min(560px, calc(100vw - 40px));
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h2 {
+  font-size: 15px;
+  margin: 0;
+  flex: 1;
+}
+.modal-body {
+  padding: 6px 18px 18px;
+  overflow: auto;
+}
+.settings-section {
+  padding: 14px 0;
+}
+.settings-section + .settings-section {
+  border-top: 1px solid var(--border);
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-head h3 {
+  font-size: 13px;
+  margin: 0;
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.section-actions {
+  display: flex;
+  gap: 6px;
+}
+.section-actions button {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+.section-hint {
+  margin: 6px 0 12px;
+}
+.column-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px 14px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 3px 0;
+  user-select: none;
+}
+.check input {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* ---- Ketcher host ---------------------------------------------------------- */
+.ketcher-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.ketcher-host > * {
+  position: absolute;
+  inset: 0;
+}
+.error-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 12px;
+  padding: 6px 14px;
+}
+.error-dismiss {
+  margin-left: auto;
+  padding: 1px 7px;
+  font-size: 12px;
+  color: var(--danger);
+  background: transparent;
+  border-color: transparent;
+}
+.error-dismiss:hover {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+}
+
+/* ---- Property table -------------------------------------------------------- */
+.empty {
+  margin: auto;
+  max-width: 340px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 40px;
+}
+.table-scroll {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+.prop-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.prop-table th,
+.prop-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+.prop-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  color: var(--muted);
+  font-weight: 600;
+  z-index: 1;
+  user-select: none;
+}
+.prop-table th.sortable {
+  cursor: pointer;
+}
+.prop-table th.sortable:hover {
+  color: var(--text);
+}
+.prop-table tbody tr:hover {
+  background: var(--panel-2);
+}
+.prop-table tbody tr.selected {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+.mono.small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.struct-cell {
+  width: 130px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.struct-cell svg {
+  max-width: 100%;
+  max-height: 100%;
+}

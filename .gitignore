@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Python backend
+server/.venv/
+server/.python/
+__pycache__/
+*.pyc
+
+# Electron shell (installed on demand, ~100 MB)
+desktop/node_modules/
+desktop/build/
