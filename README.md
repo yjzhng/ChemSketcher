@@ -36,7 +36,7 @@ Then run the two processes (two terminals):
 server/.venv/bin/python server/app.py
 
 # terminal 2 — web UI (proxies /api to the backend)
-npm run dev           # http://localhost:5473
+npm run dev           # http://localhost:5573
 ```
 
 ## Desktop app (Electron, from source)
@@ -50,7 +50,8 @@ that installs deps on first run (web + Electron + the Python venv), then opens
 the app. Update with `git pull` and relaunch; nothing to rebundle.
 
 The orchestrator (`desktop/scripts/dev.mjs`) starts the RDKit backend, waits
-for it to answer, starts Vite on a port unique to ChemSketcher (5473), verifies
+for it to answer, starts Vite on the pinned port from package.json
+(`appConfig.devPort` = 5573; unique across the fleet), verifies
 the served page is actually ChemSketcher (port guard), then opens the window.
 Quitting the window ends the session.
 

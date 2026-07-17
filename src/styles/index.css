@@ -78,39 +78,59 @@ body {
   background: var(--panel-2);
   border-color: var(--border);
 }
+/* Flat icon buttons: no chrome until hovered, and a tight box around the icon. */
 .header-btn {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
   line-height: 1;
-  border-radius: 8px;
-  color: var(--text);
+  border-radius: 5px;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
 }
 .header-btn:hover {
   background: var(--panel-2);
-  border-color: var(--accent);
+  border-color: var(--border);
+  color: var(--text);
 }
-.settings-btn {
-  font-size: 20px;
+/* VS Code-style layout picker (top-right of the main nav). */
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.panel-controls-label {
+  margin-right: 6px;
+  white-space: nowrap;
+}
+/* Active side reads from the accent-tinted, filled glyph — no permanent box.
+   (Declared after .header-btn:hover so it keeps the accent colour on hover.) */
+.pos-btn.active,
+.pos-btn.active:hover {
+  color: var(--accent);
 }
 
 /* ---- Split layout ---------------------------------------------------------- */
+/* The table docks left / bottom / right of the canvas; flex-direction does the
+   arranging, and --table-size (set by the drag divider) fixes its extent. */
 .split {
-  display: grid;
-  grid-template-columns: minmax(420px, 1fr) minmax(480px, 1.2fr);
+  display: flex;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
-/* Right (properties) panel hidden — sketcher takes the full width. */
-.split.solo {
-  grid-template-columns: 1fr;
+.split.pos-right {
+  flex-direction: row;
 }
-.split.solo .sketch-panel {
-  border-right: none;
+.split.pos-left {
+  flex-direction: row-reverse;
+}
+.split.pos-bottom {
+  flex-direction: column;
 }
 
 .sketch-panel,
@@ -121,7 +141,32 @@ body {
   min-width: 0;
 }
 .sketch-panel {
-  border-right: 1px solid var(--border);
+  flex: 1 1 auto;
+}
+.table-panel {
+  flex: 0 0 var(--table-size, 620px);
+}
+
+/* Drag handle between the panes. */
+.divider {
+  flex: 0 0 5px;
+  background: var(--border);
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+.split.pos-bottom .divider {
+  cursor: row-resize;
+}
+.divider:hover {
+  background: var(--accent);
+}
+/* While dragging the divider, don't let the editor react to the pointer. */
+body.resizing {
+  user-select: none;
+}
+body.resizing .ketcher-host {
+  pointer-events: none;
 }
 
 .panel-bar {

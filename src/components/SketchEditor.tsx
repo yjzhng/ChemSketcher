@@ -6,7 +6,6 @@ import 'ketcher-react/dist/index.css';
 import { useStore } from '../data/store';
 import { computeCompounds } from '../chem/client';
 import { installFastTooltips } from '../ui/fastTooltips';
-import Tooltip from './Tooltip';
 
 // Created once; instantiates the Indigo WASM worker on first use (browser only).
 const structServiceProvider = new StandaloneStructServiceProvider();
@@ -21,13 +20,7 @@ const DEBOUNCE_MS = 350;
  * to the property table automatically — every disconnected molecule becomes a
  * row and updates live as you draw.
  */
-export default function SketchEditor({
-  showTable,
-  onToggleTable,
-}: {
-  showTable: boolean;
-  onToggleTable: () => void;
-}) {
+export default function SketchEditor() {
   const [error, setError] = useState<string | null>(null);
   const [smilesInput, setSmilesInput] = useState('');
   // Status ("updating…", errors) is shown in the Compounds header (right panel).
@@ -123,33 +116,6 @@ export default function SketchEditor({
         <button type="submit" className="smiles-load" disabled={!smilesInput.trim()}>
           Load
         </button>
-        <span className="spacer" />
-        <span className="bar-divider" />
-        <Tooltip label={showTable ? 'Hide properties table' : 'Show properties table'}>
-          <button
-            type="button"
-            className="header-btn"
-            onClick={onToggleTable}
-            aria-label={showTable ? 'Hide properties table' : 'Show properties table'}
-            aria-pressed={showTable}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect
-                x="1.5"
-                y="2.5"
-                width="13"
-                height="11"
-                rx="1.5"
-                stroke="currentColor"
-                strokeWidth="1.2"
-              />
-              <line x1="9.5" y1="2.5" x2="9.5" y2="13.5" stroke="currentColor" strokeWidth="1.2" />
-              {showTable && (
-                <rect x="9.5" y="2.5" width="5" height="11" fill="currentColor" opacity="0.35" />
-              )}
-            </svg>
-          </button>
-        </Tooltip>
       </form>
 
       {error && (

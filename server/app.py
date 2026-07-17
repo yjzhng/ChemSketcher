@@ -4,12 +4,15 @@ A small FastAPI service that turns a drawn structure (molfile or SMILES) into
 physicochemical descriptors + a 2D SVG, using RDKit. The Vite dev server
 proxies /api → here, and the desktop orchestrator boots it before the window.
 
-Run directly:  python server/app.py   (honours CHEMSKETCHER_API_PORT, default 8473)
+Run directly:  python server/app.py   (honours CHEMSKETCHER_API_PORT; the
+default comes from appConfig.apiPort in package.json)
 """
 
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,8 +57,17 @@ def compute_endpoint(req: ComputeRequest) -> dict[str, object]:
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
+def _default_api_port() -> int:
+    """package.json `appConfig.apiPort` is the single source of truth for ports."""
+    try:
+        pkg = json.loads((Path(__file__).resolve().parent.parent / "package.json").read_text())
+        return int(pkg["appConfig"]["apiPort"])
+    except Exception:  # noqa: BLE001 — fall back if run outside the repo
+        return 8573
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.environ.get("CHEMSKETCHER_API_PORT", "8473"))
+    port = int(os.environ.get("CHEMSKETCHER_API_PORT") or _default_api_port())
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")

@@ -4,19 +4,23 @@
 //
 //   make desktop            (or: node desktop/scripts/dev.mjs)
 //
-// Boot order: Python backend → wait for /health → Vite (unique port) → verify
+// Boot order: Python backend → wait for /health → Vite (pinned port) → verify
 // the served page is ChemSketcher (port guard) → Electron window.
 //
-// HOST PORT GUARD — two defenses so one app's session never mixes with another
-// sibling Electron app's:
-//   1. Vite runs on a base port UNIQUE to ChemSketcher (5473; ChemViewer uses
-//      5373) with strictPort OFF, so a busy port auto-increments and we point
-//      Electron at whatever Vite actually bound. Before launching, we fetch that
-//      URL and require the served HTML to be ChemSketcher — if some OTHER app's
-//      server answers, we refuse to launch.
-//   2. On macOS we brand a cheap APFS clone of Electron with a UNIQUE bundle id
-//      (tech.morrealelab.chemsketcher) so two sibling apps don't collide in
-//      Launch Services.
+// Identity + ports come from package.json `appConfig` (the OneProduction
+// convention) — the single source of truth. Never hard-code them here.
+//
+// SESSION GUARDS — so one app's session never mixes with a sibling's:
+//   1. The dev port is PINNED (vite strictPort). A second concurrent session, or
+//      a sibling squatting the port, fails loudly instead of silently drifting
+//      onto another port. Fleet registry: uniOme 5173 · autumnLab 5273 ·
+//      ChemViewer 5373 · OneProduction 5473 · ChemSketcher 5573.
+//   2. Identity check — we fetch the served URL and require it to actually be
+//      ChemSketcher before pointing Electron at it.
+//   3. On macOS we brand a cheap APFS clone of Electron with a UNIQUE bundle id
+//      (<appIdNamespace>.<name>) so two sibling apps don't collide in Launch
+//      Services.
+//   4. Single-instance lock (see electron/main.cjs).
 
 import { spawn, execFileSync } from 'node:child_process';
 import {
@@ -34,9 +38,11 @@ const here = dirname(fileURLToPath(import.meta.url));
 const desktop = resolve(here, '..');
 const repo = resolve(desktop, '..'); // ChemSketcher root = the Vite app + server/
 
-const APP_NAME = 'ChemSketcher';
-const BASE_PORT = String(process.env.CHEMSKETCHER_PORT || 5473);
-const API_PORT = String(process.env.CHEMSKETCHER_API_PORT || 8473);
+// package.json = single source of truth for identity + ports.
+const pkg = JSON.parse(readFileSync(resolve(repo, 'package.json'), 'utf8'));
+const APP_NAME = pkg.productName;
+const BASE_PORT = String(process.env.CHEMSKETCHER_PORT || pkg.appConfig.devPort);
+const API_PORT = String(process.env.CHEMSKETCHER_API_PORT || pkg.appConfig.apiPort);
 
 const viteBin = resolve(repo, 'node_modules/.bin/vite');
 const electronBinDefault = resolve(desktop, 'node_modules/.bin/electron');
@@ -44,8 +50,8 @@ const venvPython = resolve(repo, 'server/.venv/bin/python');
 const pythonBin = existsSync(venvPython) ? venvPython : process.env.PYTHON || 'python3';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// macOS branded Electron clone with a UNIQUE bundle id (see header, defense #2).
-const BRAND_ID = 'tech.morrealelab.chemsketcher';
+// macOS branded Electron clone with a UNIQUE bundle id (see header, guard #3).
+const BRAND_ID = `${pkg.appConfig.appIdNamespace}.${pkg.name}`;
 const BRAND_REV = '2'; // bump to force a re-brand (e.g. icon change)
 function brandedElectronBin() {
   if (process.platform !== 'darwin' || process.env.CHEMSKETCHER_NO_BRAND === '1') {

@@ -10,12 +10,40 @@ const { app, BrowserWindow, dialog, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
+// package.json = single source of truth for identity + ports.
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
+);
+
 // Stable name so the user-data dir is "ChemSketcher" even in the from-source run.
-app.setName('ChemSketcher');
+app.setName(pkg.productName);
 
 const devUrl = process.env.VITE_DEV_URL || null;
+const devPort = devUrl ? new URL(devUrl).port : '';
+
+// A session is identified by its dev port. The app's normal port keeps the
+// standard userData dir; an instance deliberately started on another port (an
+// isolated test run) gets its own, so it neither shares state with nor trips the
+// single-instance lock of the everyday session.
+if (devPort && devPort !== String(pkg.appConfig.devPort)) {
+  app.setPath('userData', path.join(app.getPath('userData'), `dev-${devPort}`));
+}
+
+// Single-instance lock (OneProduction session guard): launching the same
+// session twice focuses the existing window instead of spawning a parallel
+// process with its own state.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+  process.exit(0);
+}
 
 let mainWindow = null;
+
+app.on('second-instance', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+});
 
 // Brand the macOS dock with the ChemSketcher icon (the from-source run otherwise
 // shows the stock Electron icon).
@@ -37,7 +65,7 @@ function createMainWindow(url) {
     height: 940,
     minWidth: 1024,
     minHeight: 640,
-    title: 'ChemSketcher',
+    title: pkg.productName,
     backgroundColor: '#f4f6f9',
     webPreferences: { contextIsolation: true },
   });
@@ -73,7 +101,7 @@ async function boot() {
   setDockIcon();
   if (!devUrl) {
     dialog.showErrorBox(
-      'ChemSketcher',
+      pkg.productName,
       'Start the desktop app via the launcher so Vite + the backend are running:\n\n  make desktop\n\n(or: node desktop/scripts/dev.mjs)',
     );
     app.quit();

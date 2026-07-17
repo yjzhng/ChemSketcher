@@ -1,11 +1,18 @@
 {
   "name": "chemsketcher",
+  "productName": "ChemSketcher",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Ketcher-based desktop chemical structure editor with a live physicochemical property table (RDKit backend)",
   "author": "Morreale Lab <morreale.lab@gmail.com>",
   "license": "MIT",
+  "//appConfig": "Single source of truth for app identity + ports (OneProduction convention). Everything else derives from this — do not hard-code these values elsewhere.",
+  "appConfig": {
+    "appIdNamespace": "tech.morrealelab",
+    "devPort": 5573,
+    "apiPort": 8573
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
