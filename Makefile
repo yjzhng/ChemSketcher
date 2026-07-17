@@ -1,4 +1,4 @@
-.PHONY: install server-install desktop-install desktop web build
+.PHONY: install server-install desktop-install desktop web build launcher dist dist-arm64 dist-x64
 
 # Install root (web) dependencies.
 install:
@@ -21,6 +21,10 @@ desktop:
 	@[ -d server/.venv ] || $(MAKE) server-install
 	node desktop/scripts/dev.mjs
 
+# (Re)generate the double-clickable ChemSketcher.app launcher for the dev path.
+launcher:
+	node desktop/scripts/make-launcher.mjs
+
 # Plain browser dev server (start the Python backend separately — see README).
 web:
 	npm run dev
@@ -28,3 +32,18 @@ web:
 # Production web build.
 build:
 	npm run build
+
+# --- Shipping: build the distributable .dmg --------------------------------
+# Packages the Electron app + built UI + Python backend sources into a .dmg (the
+# RDKit env is fetched on the user's first launch, not bundled). Ad-hoc signed so
+# the download shows the "Open Anyway" dialog, not "damaged". Output: desktop/dist/.
+# Requires desktop deps (electron-builder): `make desktop-install`.
+dist:
+	npm --prefix desktop run dist
+
+# One-arch variants (each .dmg then only runs on that arch).
+dist-arm64:
+	npm --prefix desktop run dist:arm64
+
+dist-x64:
+	npm --prefix desktop run dist:x64

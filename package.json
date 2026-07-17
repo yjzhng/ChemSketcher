@@ -5,13 +5,18 @@
   "private": true,
   "type": "module",
   "description": "Ketcher-based desktop chemical structure editor with a live physicochemical property table (RDKit backend)",
-  "author": "Morreale Lab <morreale.lab@gmail.com>",
+  "author": "yjzhng (https://github.com/yjzhng)",
   "license": "MIT",
   "//appConfig": "Single source of truth for app identity + ports (OneProduction convention). Everything else derives from this — do not hard-code these values elsewhere.",
   "appConfig": {
-    "appIdNamespace": "tech.morrealelab",
+    "appIdNamespace": "tech.yjzhng",
     "devPort": 5573,
-    "apiPort": 8573
+    "apiPort": 8573,
+    "//python": "The self-contained CPython used when the machine has no suitable native Python (dev: ensure-venv.sh) or always (packaged app: electron/pythonEnv.cjs). Pinned so both paths provision the SAME interpreter. Bump both fields together — see github.com/astral-sh/python-build-standalone/releases.",
+    "python": {
+      "pbsTag": "20241219",
+      "version": "3.12.8"
+    }
   },
   "scripts": {
     "dev": "vite",
@@ -19,7 +24,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "desktop": "node desktop/scripts/dev.mjs",
-    "desktop:install": "npm --prefix desktop install"
+    "desktop:install": "npm --prefix desktop install",
+    "dist": "npm --prefix desktop run dist",
+    "dist:arm64": "npm --prefix desktop run dist:arm64",
+    "dist:x64": "npm --prefix desktop run dist:x64"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.20.5",

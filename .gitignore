@@ -3,12 +3,16 @@ dist/
 *.log
 .DS_Store
 
+# From-source launch logs (kept under the repo so they travel with the folder).
+logs/
+
 # Python backend
 server/.venv/
 server/.python/
 __pycache__/
 *.pyc
 
-# Electron shell (installed on demand, ~100 MB)
+# Electron shell (installed on demand, ~100 MB) + packaging outputs.
 desktop/node_modules/
 desktop/build/
+desktop/dist/

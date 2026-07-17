@@ -16,11 +16,22 @@ set -e
 cd "$(cd "$(dirname "$0")/../.." && pwd)" # repo root (desktop/scripts → ../..)
 
 # Python versions RDKit publishes wheels for that we're happy to use. When we
-# have to download, we fetch the first (newest) one.
+# have to download, we fetch the pinned one.
 SUPPORTED="3.12 3.11 3.10"
-# Pinned python-build-standalone release (override via env to bump).
-PBS_TAG="${CHEMSKETCHER_PBS_TAG:-20241219}"
-PBS_VER="${CHEMSKETCHER_PBS_VER:-3.12.8}"
+
+# The python-build-standalone pin lives in package.json `appConfig.python` — the
+# same one the packaged app's provisioner reads, so both paths install the same
+# interpreter. node is always present on this path (the dev stack needs it), but
+# fall back to the known-good literals if the read fails for any reason.
+# `|| true` keeps a node failure from tripping `set -e` inside the assignments
+# below (a failed $(...) there would abort the script instead of falling back).
+pkg_python() {
+  node -e "process.stdout.write(String(require('./package.json').appConfig.python.$1))" 2>/dev/null || true
+}
+PBS_TAG="${CHEMSKETCHER_PBS_TAG:-$(pkg_python pbsTag)}"
+PBS_VER="${CHEMSKETCHER_PBS_VER:-$(pkg_python version)}"
+: "${PBS_TAG:=20241219}"
+: "${PBS_VER:=3.12.8}"
 
 # TRUE hardware arch. `uname -m` reports the *process* arch, which is x86_64
 # when we're running under a Rosetta preference on Apple Silicon — so ask the

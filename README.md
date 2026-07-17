@@ -1,75 +1,106 @@
 # ChemSketcher
 
-An open-source, Ketcher-based desktop chemical structure editor. Draw a
-molecule, and an interactive table shows its physicochemical properties and
-attributes at a glance. Add several structures to compare them side by side.
-Runs in the browser or as a from-source Electron desktop app.
+Open-source molecule sketchpad desktop app based on [EPAM Ketcher](https://lifescience.opensource.epam.com/ketcher/). Comes with an interactive table that shows various physchem properties of the drawn molecules, computed live by [RDKit](https://www.rdkit.org). 
 
-## Stack
+Features: 
+- Each distinct molecule is recognised automatically
+- Supported molecule properties: SMILES, molecular weight, logP, TPSA, donors/acceptors, ring counts, QED, InChIKey
 
-- **Vite + React + TypeScript** — UI and the interactive property table
-  (TanStack Table).
-- **EPAM Ketcher** — the structure editor (`ketcher-react` + the standalone
-  Indigo WASM service, so it runs with no server).
-- **Python + RDKit** — a small FastAPI backend computes descriptors and renders
-  the structure SVG. Vite proxies `/api` → it.
-- **Electron** — a from-source desktop shell around the live Vite server.
 
-## Quick start (browser)
+## Quick start
+
+1. Download the `.dmg` from the [latest release](https://github.com/yjzhng/ChemSketcher/releases/latest) — `arm64` (Apple Silicon) or `x64` (Intel).
+2. Install **ChemSketcher** to Applications.
+3. **First launch** may be blocked by system security, to resolve: 
+   - **macOS 15 (Sequoia) or newer:** double-click ChemSketcher → a "not opened"
+     alert appears → open **System Settings → Privacy & Security**, scroll down,
+     and click **Open Anyway**.
+   - **macOS 14 or older:** **right-click** ChemSketcher → **Open** → **Open** in
+     the dialog.
+4. After that it opens normally.
+
+> [!NOTE]
+> **First launch downloads the chemistry engine.** ChemSketcher fetches a
+> self-contained Python + RDKit (~a few minutes) with a progress window. This
+> happens once; everything lands in `~/Library/Application Support/ChemSketcher/`
+> and the app bundle is never modified.
+
+> [!TIP]
+> Terminal alternative to the Gatekeeper prompt, once installed:
+> `xattr -dr com.apple.quarantine /Applications/ChemSketcher.app`
+
+### To use it
+
+1. **Draw** a molecule, or paste in a SMILES string and press **Load**.
+2. **Open / Save / Save As** (top-left) read and write structure files
+   (`.mol`, `.sdf`, `.ket`, `.smi`, …).
+3. Customise properties to include the in **Settings** (top-right)
+4. Show/hide and table and change its position with the layout buttons (top-right). 
+5. Drag the divider to
+   resize.
+
+## Run from source (developers)
+
+- **Native window (macOS):** clone the repo and **double-click `ChemSketcher.app`**
+  — a launcher stub that installs dependencies behind a progress window on first
+  run, then opens the app. `git pull` and relaunch to update. Equivalent to
+  `make desktop`.
+- **Browser / any OS:**
+
+  ```sh
+  make install          # web deps
+  make server-install   # Python venv + RDKit + FastAPI
+
+  # then, in two terminals:
+  server/.venv/bin/python server/app.py   # property backend
+  npm run dev                             # http://localhost:5573
+  ```
+
+Needs [Node.js](https://nodejs.org) + git. On first run the app also provisions a
+Python/RDKit environment that **matches your CPU architecture** (native arm64 on
+Apple Silicon, x86_64 on Intel), downloading a self-contained CPython if the
+machine has none — no Homebrew, no system changes.
+
+### Build the installer
 
 ```sh
-make install          # npm install (web deps)
-make server-install   # create server/.venv and install RDKit + FastAPI
+make desktop-install    # one-time: Electron + electron-builder
+make dist               # → desktop/dist/ChemSketcher-<version>-<arch>.dmg (both arches)
+make dist-arm64         # or a single architecture
+make dist-x64
 ```
 
-`server-install` builds the venv from a Python that **matches your CPU
-architecture** — native arm64 on Apple Silicon, x86_64 on Intel. If your
-machine has no suitable native Python (e.g. only an x86_64/Rosetta `python3`),
-it downloads a self-contained CPython for the right arch into `server/.python`
-(no Homebrew or system changes). Logic lives in
-[desktop/scripts/ensure-venv.sh](desktop/scripts/ensure-venv.sh).
+The `.dmg` is **ad-hoc signed** (no Developer ID), which is what makes a
+downloaded copy show the "unidentified developer / Open Anyway" dialog rather
+than "app is damaged". The RDKit engine is not bundled — it is provisioned on the
+user's first launch. See [desktop/README.md](desktop/README.md) for the desktop
+architecture, and the header of
+[desktop/electron/pythonEnv.cjs](desktop/electron/pythonEnv.cjs) for how
+provisioning works.
 
-Then run the two processes (two terminals):
 
-```sh
-# terminal 1 — property backend
-server/.venv/bin/python server/app.py
+## Built with
 
-# terminal 2 — web UI (proxies /api to the backend)
-npm run dev           # http://localhost:5573
-```
+- [EPAM Ketcher](https://lifescience.opensource.epam.com/ketcher/) + the
+  [Indigo Toolkit](https://lifescience.opensource.epam.com/indigo/) — structure
+  editor and cheminformatics (Apache-2.0).
+- [RDKit](https://www.rdkit.org) — descriptor and structure computation (BSD-3-Clause).
+- [React](https://react.dev), [Vite](https://vitejs.dev),
+  [TanStack Table](https://tanstack.com/table), [Zustand](https://github.com/pmndrs/zustand) — UI.
+- [FastAPI](https://fastapi.tiangolo.com) + [Uvicorn](https://www.uvicorn.org) — backend.
+- [Electron](https://www.electronjs.org) + [electron-builder](https://www.electron.build) — desktop shell and packaging.
+- [python-build-standalone](https://github.com/astral-sh/python-build-standalone) — the self-contained interpreter provisioned at first run.
 
-## Desktop app (Electron, from source)
+## References
 
-```sh
-make desktop          # boots the Python backend + Vite + a native window
-```
+- Landrum, G., et al. *RDKit: Open-source cheminformatics.* https://www.rdkit.org
+- Pavlov, D., Rybalkin, M., Karulin, B., Kozhevnikov, M., Savelyev, A., &
+  Churinov, A. (2011). Indigo: universal cheminformatics API. *Journal of
+  Cheminformatics, 3*(Suppl 1), P4. https://doi.org/10.1186/1758-2946-3-S1-P4
 
-Or just **double-click `ChemSketcher.app`** in the repo — a tiny launcher stub
-that installs deps on first run (web + Electron + the Python venv), then opens
-the app. Update with `git pull` and relaunch; nothing to rebundle.
+## License
 
-The orchestrator (`desktop/scripts/dev.mjs`) starts the RDKit backend, waits
-for it to answer, starts Vite on the pinned port from package.json
-(`appConfig.devPort` = 5573; unique across the fleet), verifies
-the served page is actually ChemSketcher (port guard), then opens the window.
-Quitting the window ends the session.
-
-## How it works
-
-1. You draw a structure in Ketcher.
-2. **Add to table** grabs the molfile and POSTs it to `/api/compute`.
-3. The RDKit backend returns descriptors (MW, logP, TPSA, HBD/HBA, rings,
-   rotatable bonds, QED, InChIKey, …) plus a rendered SVG.
-4. A row appears in the sortable table. Repeat to compare compounds.
-
-Naming is deferred for now — the table keys compounds by formula / InChIKey.
-
-## Layout
-
-| Path | What |
-| --- | --- |
-| `src/` | Frontend (Ketcher editor, property table, store, API client). |
-| `server/` | Python RDKit + FastAPI property backend. |
-| `desktop/` | Electron shell + dev orchestrator (`make desktop`). |
-| `vite.config.ts` | Vite config; proxies `/api` to the Python backend. |
+ChemSketcher's source is released under the **MIT License** — see
+[LICENSE](LICENSE). It builds on third-party components under their own permissive
+licenses (Ketcher/Indigo: Apache-2.0; RDKit: BSD-3-Clause), noted in
+[Built with](#built-with) above.

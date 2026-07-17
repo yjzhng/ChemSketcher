@@ -2,13 +2,19 @@
   "name": "chemsketcher-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "ChemSketcher desktop shell (Electron) — a live from-source dev window around the Vite UI + RDKit backend",
-  "author": "Morreale Lab <morreale.lab@gmail.com>",
+  "description": "ChemSketcher desktop shell (Electron) — from-source dev window, and the packaged app",
+  "author": "yjzhng (https://github.com/yjzhng)",
   "main": "electron/main.cjs",
+  "//": "Identity (name/appId/version) is NOT set here — electron-builder.cjs derives it from the root package.json. See appConfig there.",
   "scripts": {
-    "dev": "node scripts/dev.mjs"
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "dist": "npm run build && electron-builder --mac --arm64 --x64 --config electron-builder.cjs",
+    "dist:arm64": "npm run build && electron-builder --mac --arm64 --config electron-builder.cjs",
+    "dist:x64": "npm run build && electron-builder --mac --x64 --config electron-builder.cjs"
   },
   "devDependencies": {
-    "electron": "^33.4.11"
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
   }
 }

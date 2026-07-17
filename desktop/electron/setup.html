@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src file:; style-src 'unsafe-inline'; script-src 'unsafe-inline';"
+    />
+    <title>Setup</title>
+    <style>
+      /* Mirrors the app's light-only palette (src/styles/index.css). */
+      :root {
+        color-scheme: light;
+        --bg: #f4f6f9;
+        --panel: #ffffff;
+        --border: #d7dce3;
+        --text: #1b1e24;
+        --muted: #667085;
+        --accent: #1d5fd0;
+        --danger: #d1362f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 28px 34px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      img { width: 64px; height: 64px; }
+      h1 { font-size: 15px; margin: 0; letter-spacing: 0.02em; }
+      .sub { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; margin: 0; }
+      .track {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--border);
+        overflow: hidden;
+      }
+      .bar {
+        height: 100%;
+        width: 0;
+        background: var(--accent);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+      .line { display: flex; width: 100%; gap: 10px; font-size: 12px; color: var(--muted); }
+      .msg { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .pct { font-variant-numeric: tabular-nums; }
+      /* Error state */
+      .err { display: none; width: 100%; flex-direction: column; gap: 12px; align-items: center; }
+      body.failed .err { display: flex; }
+      body.failed .track,
+      body.failed .line,
+      body.failed .sub { display: none; }
+      .err-msg {
+        width: 100%;
+        max-height: 132px;
+        overflow: auto;
+        padding: 9px 11px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--danger);
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        word-break: break-word;
+        -webkit-user-select: text;
+        user-select: text;
+      }
+      .actions { display: flex; gap: 8px; }
+      button {
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 5px 14px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--text);
+      }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    </style>
+  </head>
+  <body>
+    <img src="../build/icon.png" alt="" onerror="this.remove()" />
+    <h1 id="title">Setting up…</h1>
+
+    <p class="sub">
+      One-time setup: downloading the RDKit chemistry engine.<br />
+      This takes a few minutes and only happens once.
+    </p>
+
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="line">
+      <span class="msg" id="msg">Starting…</span>
+      <span class="pct" id="pct">0%</span>
+    </div>
+
+    <div class="err">
+      <div class="err-msg" id="errMsg"></div>
+      <div class="actions">
+        <button id="quit">Quit</button>
+        <button class="primary" id="retry">Try again</button>
+      </div>
+    </div>
+
+    <script>
+      // The app name is passed in by main (loadFile query) rather than written
+      // here — package.json stays the single source of truth for identity.
+      const appName = new URLSearchParams(location.search).get('name') || 'the app';
+      document.title = 'Setting up ' + appName;
+      document.getElementById('title').textContent = 'Setting up ' + appName;
+
+      const bar = document.getElementById('bar');
+      const msg = document.getElementById('msg');
+      const pct = document.getElementById('pct');
+
+      window.setup.onProgress(({ pct: p, message }) => {
+        bar.style.width = p + '%';
+        pct.textContent = p + '%';
+        if (message) msg.textContent = message;
+      });
+
+      window.setup.onError(({ message }) => {
+        document.body.classList.add('failed');
+        document.getElementById('errMsg').textContent = message;
+      });
+
+      document.getElementById('retry').onclick = () => {
+        document.body.classList.remove('failed');
+        window.setup.retry();
+      };
+      document.getElementById('quit').onclick = () => window.setup.quit();
+    </script>
+  </body>
+</html>

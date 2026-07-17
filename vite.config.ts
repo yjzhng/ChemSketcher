@@ -19,12 +19,17 @@ export default defineConfig({
     // loudly rather than silently drift onto another port (and risk mixing with
     // a sibling app's session).
     strictPort: true,
+    // Pass /api straight through — the backend owns that prefix itself. No
+    // rewrite: the packaged app has no proxy (the backend serves the built UI
+    // and the API on one origin), so a path that only exists in dev would make
+    // the two modes diverge.
     proxy: {
       '/api': {
         target: `http://127.0.0.1:${API_PORT}`,
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api/, ''),
       },
     },
   },
+  // Assets are served from the app origin's root in both modes.
+  base: '/',
 });

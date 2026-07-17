@@ -51,8 +51,12 @@ const pythonBin = existsSync(venvPython) ? venvPython : process.env.PYTHON || 'p
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // macOS branded Electron clone with a UNIQUE bundle id (see header, guard #3).
-const BRAND_ID = `${pkg.appConfig.appIdNamespace}.${pkg.name}`;
-const BRAND_REV = '2'; // bump to force a re-brand (e.g. icon change)
+// The `.dev` suffix matters: the SHIPPED app (electron-builder.yml) claims
+// <namespace>.<name>, and two different binaries registering one bundle id makes
+// Launch Services pick whichever it saw last — so a from-source run could hand
+// "open ChemSketcher" to the installed copy, or vice versa. Dev is its own id.
+const BRAND_ID = `${pkg.appConfig.appIdNamespace}.${pkg.name}.dev`;
+const BRAND_REV = '3'; // bump to force a re-brand (e.g. icon or bundle-id change)
 function brandedElectronBin() {
   if (process.platform !== 'darwin' || process.env.CHEMSKETCHER_NO_BRAND === '1') {
     return null;
@@ -193,7 +197,7 @@ function startVite() {
 console.log(`[dev] starting ${APP_NAME}: backend + Vite (base :${BASE_PORT}) + Electron…`);
 
 startBackend();
-await waitForHealth(`http://127.0.0.1:${API_PORT}/health`);
+await waitForHealth(`http://127.0.0.1:${API_PORT}/api/health`);
 
 let webUrl;
 try {
