@@ -405,6 +405,56 @@ button.ghost {
   position: absolute;
   inset: 0;
 }
+
+/* ---- Arrange toolbar (floats below a multi-molecule selection) ------------- */
+/* Override the blanket inset:0 above; SketchEditor sets left/top/transform
+   inline to anchor the bar under the selection. */
+.ketcher-host > .arrange-bar {
+  inset: auto;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+}
+.arrange-count {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.arrange-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.arrange-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 3px;
+  background: var(--border);
+}
+.arrange-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: var(--muted);
+  background: transparent;
+  border-color: transparent;
+}
+.arrange-btn:hover {
+  background: var(--panel-2);
+  border-color: var(--border);
+  color: var(--accent);
+}
 .error-inline {
   display: flex;
   align-items: center;
