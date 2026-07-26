@@ -1,7 +1,7 @@
 {
   "name": "chemsketcher",
   "productName": "ChemSketcher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Ketcher-based desktop chemical structure editor with a live physicochemical property table (RDKit backend)",
